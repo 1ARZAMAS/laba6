@@ -78,20 +78,67 @@ unsigned char gmul(unsigned char a, unsigned char b) { // умножение д�
     return result;
 }
 
-void MixColumns(vector<unsigned char>& state) {
-    for (int i = 0; i < 4; i++) {
-        unsigned char s0 = state[i * 4];
-        unsigned char s1 = state[i * 4 + 1];
-        unsigned char s2 = state[i * 4 + 2];
-        unsigned char s3 = state[i * 4 + 3];
-
-        state[i * 4] = gmul(0x02, s0) ^ gmul(0x03, s1) ^ s2 ^ s3;
-        state[i * 4 + 1] = s0 ^ gmul(0x02, s1) ^ gmul(0x03, s2) ^ s3;
-        state[i * 4 + 2] = s0 ^ s1 ^ gmul(0x02, s2) ^ gmul(0x03, s3);
-        state[i * 4 + 3] = gmul(0x03, s0) ^ s1 ^ s2 ^ gmul(0x02, s3);
+vector<unsigned char> generate_mult_by_2() {
+    vector<unsigned char> mult_by_2(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_2[i] = gmul(i, 2);
     }
+    return mult_by_2;
 }
 
+// Генерация таблицы mult_by_3
+vector<unsigned char> generate_mult_by_3() {
+    vector<unsigned char> mult_by_3(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_3[i] = gmul(i, 3);
+    }
+    return mult_by_3;
+}
+
+vector<unsigned char> generate_mult_by_14() {
+    vector<unsigned char> mult_by_14(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_14[i] = gmul(i, 14);
+    }
+    return mult_by_14;
+}
+
+vector<unsigned char> generate_mult_by_9() {
+    vector<unsigned char> mult_by_9(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_9[i] = gmul(i, 9);
+    }
+    return mult_by_9;
+}
+
+vector<unsigned char> generate_mult_by_13() {
+    vector<unsigned char> mult_by_13(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_13[i] = gmul(i, 13);
+    }
+    return mult_by_13;
+}
+
+vector<unsigned char> generate_mult_by_11() {
+    vector<unsigned char> mult_by_11(256);
+    for (int i = 0; i < 256; ++i) {
+        mult_by_11[i] = gmul(i, 11);
+    }
+    return mult_by_11;
+}
+
+void MixColumns(vector<unsigned char>& state) {
+    vector<unsigned char> mult_by_2 = generate_mult_by_2(); //операции умножения на 2 и 3 к столбцам матрицы данных
+
+    vector<unsigned char> mult_by_3 = generate_mult_by_3();
+
+    vector<unsigned char> temp;
+    temp.push_back(mult_by_2[state[0]] ^ mult_by_3[state[1]] ^ state[2] ^ state[3]);
+    temp.push_back(mult_by_2[state[1]] ^ mult_by_3[state[2]] ^ state[0] ^ state[3]);
+    temp.push_back(mult_by_2[state[2]] ^ mult_by_3[state[3]] ^ state[0] ^ state[1]);
+    temp.push_back(mult_by_2[state[3]] ^ mult_by_3[state[0]] ^ state[1] ^ state[2]);
+    state = temp;
+}
 
 void KeyExpansion(vector<unsigned char>& key, vector<vector<unsigned char>>& roundKeys) {
     const vector<unsigned char> Rcon = {
@@ -177,16 +224,17 @@ void InvSubBytes(vector<unsigned char>& state) {
 }
 
 void InvMixColumns(vector<unsigned char>& state) {
-    int temp[4];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            temp[j] = state[i * 4 + j];
-        }
-        for (int j = 0; j < 4; j++) {
-            state[i * 4 + j] = gmul(temp[j], 0x0e) ^ gmul(temp[(j + 3) % 4], 
-            0x09) ^ gmul(temp[(j + 2) % 4], 0x0d) ^ gmul(temp[(j + 1) % 4], 0x0b);
-        }
-    }
+    vector<unsigned char> mult_by_14 = generate_mult_by_14();
+    vector<unsigned char> mult_by_9 = generate_mult_by_9();
+    vector<unsigned char> mult_by_13 = generate_mult_by_13();
+    vector<unsigned char> mult_by_11 = generate_mult_by_11();
+
+    vector<unsigned char> temp;
+    temp.push_back(mult_by_14[state[0]] ^ mult_by_9[state[1]] ^ mult_by_13[state[2]] ^ mult_by_11[state[3]]);
+    temp.push_back(mult_by_14[state[1]] ^ mult_by_9[state[2]] ^ mult_by_13[state[3]] ^ mult_by_11[state[0]]);
+    temp.push_back(mult_by_14[state[2]] ^ mult_by_9[state[3]] ^ mult_by_13[state[0]] ^ mult_by_11[state[1]]);
+    temp.push_back(mult_by_14[state[3]] ^ mult_by_9[state[0]] ^ mult_by_13[state[1]] ^ mult_by_11[state[2]]);
+    state = temp;
 }
 
 void blocksGenerator(string& text, vector<vector<vector<unsigned char>>>& block) {
