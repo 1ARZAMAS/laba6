@@ -26,17 +26,18 @@ void Eratosthenes(vector<int>& PrimeNums, int k) {  //решето Эратос�
     }
 }
 
-pair<int, int> findMaxFrequentPrime(const vector<int>& counter) {
-    pair<int, int> maxFreqANDmaxFreqPrime (0, 0); 
+void findMaxFrequentPrime(const vector<int>& primeNums, vector<int>& counter) {
+    int maxFreq = 0;
+    int maxFreqPrime = 0;
     // maxFreq максимальная частота встречаемости
     // maxFreqPrime храним значение простого числа
-    for (int i = 0; i < counter.size(); i++) {
-        if (counter[i] > maxFreqANDmaxFreqPrime.first) { // проверяем является ли текущее значение счетчика больше, чем текущее значение
-            maxFreqANDmaxFreqPrime.first = counter[i]; // обновляем значение
-            maxFreqANDmaxFreqPrime.second = i; // обновляем значение простого числа
+    for (int num : primeNums) {
+        if (counter[num] > maxFreq) {
+            maxFreq = counter[num];
+            maxFreqPrime = num;
         }
     }
-    return maxFreqANDmaxFreqPrime;
+    cout << "Число " << maxFreqPrime << " встречается " << maxFreq << " раз" << endl;
 }
 
 void Input(int& M, int& N){
@@ -122,8 +123,15 @@ int main() {
             }
         }
     }
-    pair<int, int> maxFrequentPrime = findMaxFrequentPrime(counter);
-    cout << "Число " << maxFrequentPrime.first << " встречается " << maxFrequentPrime.second << " раз" << endl; 
+    for (int i = 0; i < M; i++){
+        for(int j = 0; j < N; j++){
+            cout << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+    findMaxFrequentPrime(primeNums, counter);
 
     // 2 пункт
     // M - строка, N - столбец
@@ -166,6 +174,14 @@ int main() {
             new_array[i][j] = unique_nums[idx++];
         }
     }
+
+    for (int i = 0; i < M; i++){
+        for(int j = 0; j < N; j++){
+            cout << new_array[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
 
     // Поиск седловых точек в матрице
     vector<int> saddlePoints = findSaddlePoints(new_array);
